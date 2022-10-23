@@ -2,6 +2,7 @@
 import copy
 from typing import List, Optional
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.runner import BaseModule
@@ -81,12 +82,12 @@ class CorrelationAggregator(BaseModule):
         super().__init__(init_cfg=init_cfg)
         assert in_channels is not None, \
             "DepthWiseCorrelationAggregator require config of 'in_channels'."
+        assert out_channels is not None, 'out_channels is expected.'
         self.in_channels = in_channels
-        self.out_channels = out_channels
+        self.out_channels = out_channels-in_channels
         self.with_fc = with_fc
         if with_fc:
-            assert out_channels is not None, 'out_channels is expected.'
-            self.norm = nn.BatchNorm2d(out_channels)
+            self.norm = nn.BatchNorm2d(self.out_channels+self.in_channels)
             self.relu = nn.ReLU(inplace=True)
 
     def forward(self, query_feat: Tensor, support_feat: Tensor) -> Tensor:
@@ -107,7 +108,9 @@ class CorrelationAggregator(BaseModule):
         support_h, support_w = support_feat.shape[2:]
         feat = F.conv2d(
             query_feat,
-            support_feat.view(self.out_channels, self.in_channels, support_h, support_w))
+            support_feat.view(self.out_channels, self.in_channels, support_h, support_w),
+            padding=support_feat.shape[-1] // 2)
+        feat = torch.cat((feat, query_feat), dim=1)
         if self.with_fc:
             feat = self.norm(feat)
             feat = self.relu(feat)

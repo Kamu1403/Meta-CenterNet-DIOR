@@ -43,8 +43,8 @@ model = dict(
         bbox_head=dict(
             type='MetaCenterNetHead',
             num_classes=80,
-            in_channel=32,
-            feat_channel=32,
+            in_channel=96,
+            feat_channel=64,
             loss_center_heatmap=dict(type='GaussianFocalLoss', loss_weight=1.0),
             loss_wh=dict(type='L1Loss', loss_weight=0.1),
             loss_offset=dict(type='L1Loss', loss_weight=1.0),
@@ -60,7 +60,7 @@ model = dict(
                 dict(
                     type='CorrelationAggregator',
                     in_channels=64,
-                    out_channels=32,
+                    out_channels=96,
                     with_fc=True)
             ])),
     train_cfg=None,

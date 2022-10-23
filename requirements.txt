@@ -1,0 +1,3 @@
+-r mmdetection-2.24.1/requirements.txt
+-r mmfewshot/requirements.txt
+
